@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -31,12 +32,13 @@ def load_settings() -> Settings:
     load_dotenv()
 
     credentials = load_credentials()
+    run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     return Settings(
         base_url=get_env("HIBOB_BASE_URL", "https://api.hibob.com/v1"),
         credentials=credentials,
-        output_file=Path(get_env("OUTPUT_FILE", "output/hibob_employees.xlsx")),
-        raw_json_file=Path(get_env("RAW_JSON_FILE", "output/hibob_employees_raw.json")),
+        output_file=add_timestamp(Path(get_env("OUTPUT_FILE", "output/hibob_employees.xlsx")), run_timestamp),
+        raw_json_file=add_timestamp(Path(get_env("RAW_JSON_FILE", "output/hibob_employees_raw.json")), run_timestamp),
         fields_per_request=get_int("FIELDS_PER_REQUEST", 100),
         show_inactive=get_bool("SHOW_INACTIVE", True),
         human_readable=get_env("HUMAN_READABLE", "APPEND"),
@@ -99,3 +101,7 @@ def get_bool(name: str, default: bool) -> bool:
 
 def split_csv(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def add_timestamp(path: Path, timestamp: str) -> Path:
+    return path.with_name(f"{path.stem}_{timestamp}{path.suffix}")
